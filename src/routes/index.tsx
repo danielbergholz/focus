@@ -163,14 +163,18 @@ function TaskPage() {
               <span className="stat-label">NO SEU RADAR</span>
               <strong>
                 {String(pending).padStart(2, "0")}
-                <span>tarefas em aberto</span>
+                <span>
+                  {pending === 1 ? "tarefa em aberto" : "tarefas em aberto"}
+                </span>
               </strong>
             </div>
             <div className="overview-stat">
               <span className="stat-label">JÁ ACONTECEU</span>
               <strong>
                 {String(completed).padStart(2, "0")}
-                <span>tarefas concluídas</span>
+                <span>
+                  {completed === 1 ? "tarefa concluída" : "tarefas concluídas"}
+                </span>
               </strong>
             </div>
             <div className="overview-progress">

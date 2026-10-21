@@ -1,13 +1,13 @@
-# Foco — TanStack Start + Tidewave
+# Foco — TanStack Start
 
-App fullstack de tarefas com React, TypeScript, TanStack Start, Drizzle ORM e SQLite. Biome cuida do lint e da formatação. O Tidewave está integrado ao Vite e ao servidor do Start, apenas em desenvolvimento.
+App fullstack de tarefas com React, TypeScript, TanStack Start, Drizzle ORM e SQLite. Biome cuida do lint e da formatação.
 
 ## Executar
 
 Requer Node.js 22.12+ e npm. Execute os comandos a partir desta pasta:
 
 ```sh
-npm install
+npm ci
 cp .env.example .env
 npm run dev
 ```
@@ -15,16 +15,6 @@ npm run dev
 Abra http://localhost:3000. As migrações são aplicadas automaticamente antes do servidor iniciar. O banco fica em `data/app.sqlite` e está fora do Git; `DATABASE_URL` permite mudar o caminho.
 
 Você pode criar, editar, concluir, reabrir, excluir, filtrar e buscar tarefas. As mudanças passam por funções de servidor com validação Zod. Este é um app pessoal local, sem autenticação ou isolamento por usuário.
-
-## Tidewave
-
-Com o app rodando, abra o Tidewave Desktop ou http://localhost:9832, crie um espaço do tipo **Web application** e conecte `http://localhost:3000`.
-
-- Plugin: `vite.config.ts`, com `tidewave()`.
-- Integração do servidor: `src/start.ts`, com importação de `tidewave/tanstack` somente em desenvolvimento.
-- Endpoint MCP: `http://localhost:3000/tidewave/mcp` (HTTP streamable).
-
-A instalação foi verificada pelo handshake MCP e pelo espaço do projeto no Tidewave. O modelo/agente do chat é selecionado dentro do próprio Tidewave.
 
 ## Comandos
 
@@ -41,6 +31,15 @@ A instalação foi verificada pelo handshake MCP e pelo espaço do projeto no Ti
 | `npm run build` | Gera o servidor Node e os arquivos do cliente com Nitro |
 | `npm start` | Aplica migrações e executa o build de produção |
 
+Para executar em produção local:
+
+```sh
+npm run build
+npm start
+```
+
+O servidor de produção usa a porta 3000 por padrão. Para mudar, use `PORT=3001 npm start`.
+
 O build usa `better-sqlite3`, um módulo nativo: gere/instale as dependências no mesmo sistema operacional e arquitetura do servidor final. Em produção, mantenha o arquivo SQLite em um volume persistente.
 
 ## Estrutura
@@ -55,4 +54,4 @@ scripts/migrate.ts          Aplicação das migrações
 drizzle/                    Migrações SQL versionadas
 ```
 
-Referências: [TanStack Start](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch), [Drizzle](https://orm.drizzle.team/docs/get-started-sqlite), [Tidewave para TanStack Start](https://github.com/tidewave-ai/tidewave_js#manual-installation).
+Referências: [TanStack Start](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch), [Drizzle](https://orm.drizzle.team/docs/get-started-sqlite).
