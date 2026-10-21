@@ -1,10 +1,10 @@
-# Foco — TanStack Start
+# Focus — TanStack Start
 
-App fullstack de tarefas com React, TypeScript, TanStack Start, Drizzle ORM e SQLite. Biome cuida do lint e da formatação.
+A full-stack task manager built with React, TypeScript, TanStack Start, Drizzle ORM, and SQLite. Biome handles linting and formatting.
 
-## Executar
+## Getting started
 
-Requer Node.js 22.12+ e npm. Execute os comandos a partir desta pasta:
+Requires Node.js 22.12+ and npm. Run these commands from the project directory:
 
 ```sh
 npm ci
@@ -12,46 +12,46 @@ cp .env.example .env
 npm run dev
 ```
 
-Abra http://localhost:3000. As migrações são aplicadas automaticamente antes do servidor iniciar. O banco fica em `data/app.sqlite` e está fora do Git; `DATABASE_URL` permite mudar o caminho.
+Open http://localhost:3000. Database migrations run automatically before the server starts. The SQLite database lives in `data/app.sqlite` and is ignored by Git. Set `DATABASE_URL` to use a different file path.
 
-Você pode criar, editar, concluir, reabrir, excluir, filtrar e buscar tarefas. As mudanças passam por funções de servidor com validação Zod. Este é um app pessoal local, sem autenticação ou isolamento por usuário.
+Create, edit, complete, reopen, delete, filter, and search tasks. Changes go through server functions with Zod validation and CSRF protection. This is a local personal app with no authentication or separate user accounts.
 
-## Comandos
+## Commands
 
-| Comando | Uso |
+| Command | Purpose |
 | --- | --- |
-| `npm run dev` | Aplica migrações e inicia o desenvolvimento na porta 3000 |
-| `npm run check` | Verifica lint e formatação com Biome |
-| `npm run format` | Corrige lint e formatação |
-| `npm run typecheck` | Verifica os tipos TypeScript |
-| `npm test` | Testa CRUD, persistência, validação e entradas SQL em bancos isolados |
-| `npm run db:generate` | Gera migrações após alterar o schema |
-| `npm run db:migrate` | Aplica migrações pendentes |
-| `npm run db:studio` | Abre o Drizzle Studio |
-| `npm run build` | Gera o servidor Node e os arquivos do cliente com Nitro |
-| `npm start` | Aplica migrações e executa o build de produção |
+| `npm run dev` | Apply migrations and start the development server on port 3000 |
+| `npm run check` | Check lint rules and formatting with Biome |
+| `npm run format` | Apply lint and formatting fixes |
+| `npm run typecheck` | Check TypeScript types |
+| `npm test` | Test CRUD, persistence, validation, and SQL input using isolated databases |
+| `npm run db:generate` | Generate migrations after changing the schema |
+| `npm run db:migrate` | Apply pending migrations |
+| `npm run db:studio` | Open Drizzle Studio |
+| `npm run build` | Build the Node server and client assets with Nitro |
+| `npm start` | Apply migrations and start the production build |
 
-Para executar em produção local:
+## Production
 
 ```sh
 npm run build
 npm start
 ```
 
-O servidor de produção usa a porta 3000 por padrão. Para mudar, use `PORT=3001 npm start`.
+The production server uses port 3000 by default. To use another port, run `PORT=3001 npm start`.
 
-O build usa `better-sqlite3`, um módulo nativo: gere/instale as dependências no mesmo sistema operacional e arquitetura do servidor final. Em produção, mantenha o arquivo SQLite em um volume persistente.
+The app uses `better-sqlite3`, a native module. Build and install dependencies on the same operating system and architecture as the deployment server. Store the SQLite database on a persistent volume in production.
 
-## Estrutura
+## Project structure
 
 ```text
-src/routes/                 Telas, layout e loader SSR
-src/server/tasks.ts         Funções de servidor chamadas pelo React
-src/server/task-input.ts    Validação de entrada
-src/server/task-repository.ts  CRUD com Drizzle
-src/db/                     Schema e conexão SQLite
-scripts/migrate.ts          Aplicação das migrações
-drizzle/                    Migrações SQL versionadas
+src/routes/                    Pages, root layout, and SSR loader
+src/server/tasks.ts            Server functions called by React
+src/server/task-input.ts       Input validation
+src/server/task-repository.ts  CRUD operations with Drizzle
+src/db/                        Schema and SQLite connection
+scripts/migrate.ts             Migration runner
+drizzle/                       Versioned SQL migrations
 ```
 
-Referências: [TanStack Start](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch), [Drizzle](https://orm.drizzle.team/docs/get-started-sqlite).
+References: [TanStack Start](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch), [Drizzle](https://orm.drizzle.team/docs/get-started-sqlite).

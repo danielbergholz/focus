@@ -3,8 +3,8 @@ import { z } from "zod";
 export const taskTitle = z
   .string()
   .trim()
-  .min(1, "Escreva o título da tarefa.")
-  .max(200, "Use no máximo 200 caracteres.");
+  .min(1, "Enter a task title.")
+  .max(200, "Use no more than 200 characters.");
 export const taskId = z.object({ id: z.uuid() });
 export const createTaskInput = z.object({ title: taskTitle });
 export const updateTaskInput = z
@@ -15,5 +15,5 @@ export const updateTaskInput = z
   })
   .refine(
     (data) => data.title !== undefined || data.completed !== undefined,
-    "Informe uma alteração.",
+    "Provide at least one change.",
   );

@@ -11,16 +11,16 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Foco — um passo de cada vez" },
+      { title: "Focus — one step at a time" },
       {
         name: "description",
-        content: "Um espaço tranquilo para organizar suas tarefas.",
+        content: "A calm space to organize your tasks.",
       },
     ],
     links: [{ rel: "stylesheet", href: styles }],
   }),
   component: () => (
-    <html lang="pt-BR">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
@@ -32,17 +32,17 @@ export const Route = createRootRoute({
   ),
   errorComponent: ({ reset }) => (
     <main className="fallback">
-      <h1>Não foi possível carregar suas tarefas.</h1>
-      <p>Confira a conexão e tente novamente.</p>
+      <h1>Could not load your tasks.</h1>
+      <p>Check your connection and try again.</p>
       <button type="button" onClick={reset}>
-        Tentar novamente
+        Try again
       </button>
     </main>
   ),
   notFoundComponent: () => (
     <main className="fallback">
-      <h1>Página não encontrada.</h1>
-      <a href="/">Voltar para as tarefas</a>
+      <h1>Page not found.</h1>
+      <a href="/">Back to tasks</a>
     </main>
   ),
 });

@@ -6,7 +6,7 @@ const { db, client } = openDatabase(
 );
 try {
   migrate(db, { migrationsFolder: "./drizzle" });
-  console.log("Migrações aplicadas. SQLite pronto.");
+  console.log("Migrations applied. SQLite is ready.");
 } finally {
   client.close();
 }

@@ -30,13 +30,13 @@ export function taskRepository(db: BetterSQLite3Database<typeof schema>) {
         .where(eq(tasks.id, id))
         .returning()
         .get();
-      if (!result) throw new Error("Tarefa não encontrada.");
+      if (!result) throw new Error("Task not found.");
       return result;
     },
     delete(input: unknown) {
       const { id } = taskId.parse(input);
       const result = db.delete(tasks).where(eq(tasks.id, id)).returning().get();
-      if (!result) throw new Error("Tarefa não encontrada.");
+      if (!result) throw new Error("Task not found.");
       return { id: result.id };
     },
   };

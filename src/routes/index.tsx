@@ -44,8 +44,8 @@ function TaskPage() {
       (filter === "all" ||
         (filter === "completed" ? task.completed : !task.completed)) &&
       task.title
-        .toLocaleLowerCase("pt-BR")
-        .includes(search.toLocaleLowerCase("pt-BR")),
+        .toLocaleLowerCase("en-US")
+        .includes(search.toLocaleLowerCase("en-US")),
   );
 
   async function mutate(action: () => Promise<unknown>, after?: () => void) {
@@ -57,7 +57,7 @@ function TaskPage() {
       await router.invalidate();
       after?.();
     } catch {
-      setError("Não foi possível salvar a alteração. Tente novamente.");
+      setError("Could not save your changes. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -88,19 +88,19 @@ function TaskPage() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <a className="brand" href="/" aria-label="Foco, página inicial">
+        <a className="brand" href="/" aria-label="Focus, home">
           <span className="brand-icon">
             <Leaf size={22} />
           </span>
-          foco<span className="brand-dot">.</span>
+          focus<span className="brand-dot">.</span>
         </a>
-        <div className="workspace-label">SEU ESPAÇO</div>
-        <nav aria-label="Filtrar tarefas">
+        <div className="workspace-label">YOUR SPACE</div>
+        <nav aria-label="Filter tasks">
           {(
             [
-              ["all", "Todas as tarefas", ListTodo, tasks.length],
-              ["pending", "Em aberto", Circle, pending],
-              ["completed", "Concluídas", CheckCheck, completed],
+              ["all", "All tasks", ListTodo, tasks.length],
+              ["pending", "Open", Circle, pending],
+              ["completed", "Completed", CheckCheck, completed],
             ] as const
           ).map(([value, label, Icon, count]) => (
             <button
@@ -119,12 +119,12 @@ function TaskPage() {
         <div className="sidebar-bottom">
           <span className="little-sun">✳</span>
           <p>
-            Grandes coisas começam
+            Great things start
             <br />
-            com pequenos passos.
+            with small steps.
           </p>
           <span className="local-note">
-            <span /> Seu espaço pessoal
+            <span /> Your personal space
           </span>
         </div>
       </aside>
@@ -132,23 +132,24 @@ function TaskPage() {
       <div className="main-area">
         <header className="topbar">
           <span>
-            Meu espaço <span className="breadcrumb-slash">/</span>{" "}
-            <strong>Tarefas</strong>
+            My workspace <span className="breadcrumb-slash">/</span>{" "}
+            <strong>Tasks</strong>
           </span>
           <span className="topbar-note">
-            Um passo de cada vez <Leaf size={14} />
+            One step at a time <Leaf size={14} />
           </span>
         </header>
         <main className="content">
           <div className="page-heading">
             <div>
-              <p className="eyebrow">MENOS RUÍDO, MAIS CLAREZA</p>
+              <p className="eyebrow">LESS NOISE, MORE CLARITY</p>
               <h1>
-                Abra espaço para
-                <br />o que importa<span>.</span>
+                Make room for
+                <br />
+                what matters<span>.</span>
               </h1>
               <p className="intro">
-                Organize as ideias. Encontre seu ritmo. Faça acontecer.
+                Organize your ideas. Find your rhythm. Make it happen.
               </p>
             </div>
             <div className="heading-art" aria-hidden="true">
@@ -158,34 +159,32 @@ function TaskPage() {
             </div>
           </div>
 
-          <section className="overview" aria-label="Resumo das tarefas">
+          <section className="overview" aria-label="Task overview">
             <div className="overview-stat">
-              <span className="stat-label">NO SEU RADAR</span>
+              <span className="stat-label">ON YOUR RADAR</span>
               <strong>
                 {String(pending).padStart(2, "0")}
-                <span>
-                  {pending === 1 ? "tarefa em aberto" : "tarefas em aberto"}
-                </span>
+                <span>{pending === 1 ? "open task" : "open tasks"}</span>
               </strong>
             </div>
             <div className="overview-stat">
-              <span className="stat-label">JÁ ACONTECEU</span>
+              <span className="stat-label">ALREADY DONE</span>
               <strong>
                 {String(completed).padStart(2, "0")}
                 <span>
-                  {completed === 1 ? "tarefa concluída" : "tarefas concluídas"}
+                  {completed === 1 ? "completed task" : "completed tasks"}
                 </span>
               </strong>
             </div>
             <div className="overview-progress">
               <div>
-                <span className="stat-label">SEU PROGRESSO</span>
+                <span className="stat-label">YOUR PROGRESS</span>
                 <strong>{progress}%</strong>
               </div>
               <div
                 className="progress-track"
                 role="progressbar"
-                aria-label="Tarefas concluídas"
+                aria-label="Completed tasks"
                 aria-valuenow={progress}
                 aria-valuemin={0}
                 aria-valuemax={100}
@@ -194,8 +193,8 @@ function TaskPage() {
               </div>
               <p>
                 {tasks.length && pending === 0
-                  ? "Tudo em dia. Aproveite a pausa."
-                  : "Cada pequena conquista conta."}
+                  ? "All caught up. Enjoy a break."
+                  : "Every small win counts."}
               </p>
             </div>
           </section>
@@ -203,25 +202,25 @@ function TaskPage() {
           <section className="task-section" aria-labelledby="task-heading">
             <div className="section-heading">
               <h2 id="task-heading">
-                Suas tarefas <span>{tasks.length}</span>
+                Your tasks <span>{tasks.length}</span>
               </h2>
               <button
                 className="text-button"
                 type="button"
                 onClick={() => input.current?.focus()}
               >
-                Nova tarefa <Plus size={16} />
+                New task <Plus size={16} />
               </button>
             </div>
             <form className="add-form" onSubmit={add}>
               <Plus size={19} aria-hidden="true" />
               <label className="sr-only" htmlFor="new-task">
-                Nova tarefa
+                New task
               </label>
               <input
                 ref={input}
                 id="new-task"
-                placeholder="O que você quer fazer?"
+                placeholder="What would you like to do?"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 maxLength={200}
@@ -229,7 +228,7 @@ function TaskPage() {
                 disabled={busy}
               />
               <button type="submit" disabled={busy || !title.trim()}>
-                Adicionar <ArrowUpRight size={16} />
+                Add task <ArrowUpRight size={16} />
               </button>
             </form>
             {error && (
@@ -238,12 +237,12 @@ function TaskPage() {
               </p>
             )}
             <div className="list-toolbar">
-              <nav className="filter-tabs" aria-label="Visualização">
+              <nav className="filter-tabs" aria-label="View">
                 {(
                   [
-                    ["all", "Todas"],
-                    ["pending", "Em aberto"],
-                    ["completed", "Concluídas"],
+                    ["all", "All"],
+                    ["pending", "Open"],
+                    ["completed", "Completed"],
                   ] as const
                 ).map(([value, label]) => (
                   <button
@@ -259,25 +258,21 @@ function TaskPage() {
               </nav>
               <label className="search">
                 <Search size={15} />
-                <span className="sr-only">Buscar tarefas</span>
+                <span className="sr-only">Search tasks</span>
                 <input
-                  placeholder="Buscar tarefa"
+                  placeholder="Search tasks"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                 />
               </label>
             </div>
             <div className="list-caption">
-              <span>TAREFA</span>
+              <span>TASK</span>
               <span>
-                MAIS RECENTES <ArrowDown size={12} />
+                NEWEST FIRST <ArrowDown size={12} />
               </span>
             </div>
-            <ul
-              className="task-list"
-              aria-label="Lista de tarefas"
-              aria-busy={busy}
-            >
+            <ul className="task-list" aria-label="Task list" aria-busy={busy}>
               {visible.map((task) => (
                 <li
                   key={task.id}
@@ -288,7 +283,7 @@ function TaskPage() {
                     type="checkbox"
                     checked={task.completed}
                     disabled={busy}
-                    aria-label={`Concluir: ${task.title}`}
+                    aria-label={`Complete: ${task.title}`}
                     onChange={(event) => {
                       void mutate(() =>
                         updateTask({
@@ -306,7 +301,7 @@ function TaskPage() {
                       onSubmit={(event) => save(event, task)}
                     >
                       <input
-                        aria-label="Editar título"
+                        aria-label="Edit title"
                         value={editTitle}
                         onChange={(event) => setEditTitle(event.target.value)}
                         required
@@ -315,14 +310,14 @@ function TaskPage() {
                       />
                       <button
                         type="submit"
-                        aria-label="Salvar título"
+                        aria-label="Save title"
                         disabled={busy || !editTitle.trim()}
                       >
                         <Check size={17} />
                       </button>
                       <button
                         type="button"
-                        aria-label="Cancelar edição"
+                        aria-label="Cancel editing"
                         onClick={() => setEditing(null)}
                       >
                         <X size={17} />
@@ -334,12 +329,12 @@ function TaskPage() {
                       <span
                         className={`status-badge ${task.completed ? "finished" : ""}`}
                       >
-                        {task.completed ? "Concluída" : "Em aberto"}
+                        {task.completed ? "Completed" : "Open"}
                       </span>
                       <div className="row-actions">
                         <button
                           type="button"
-                          aria-label={`Editar: ${task.title}`}
+                          aria-label={`Edit: ${task.title}`}
                           disabled={busy}
                           onClick={() => {
                             setEditing(task.id);
@@ -350,7 +345,7 @@ function TaskPage() {
                         </button>
                         <button
                           type="button"
-                          aria-label={`Excluir: ${task.title}`}
+                          aria-label={`Delete: ${task.title}`}
                           disabled={busy}
                           onClick={() => {
                             void mutate(() =>
@@ -377,34 +372,34 @@ function TaskPage() {
                 </span>
                 <h3>
                   {search
-                    ? "Nenhuma tarefa por aqui."
+                    ? "No tasks found."
                     : filter === "completed"
-                      ? "Suas conquistas vão aparecer aqui."
+                      ? "Your wins will show up here."
                       : filter === "pending" && tasks.length
-                        ? "Tudo em dia por aqui."
-                        : "Um começo leve."}
+                        ? "You are all caught up."
+                        : "A fresh start."}
                 </h3>
                 <p>
                   {search
-                    ? "Experimente buscar por outro termo."
+                    ? "Try a different search term."
                     : filter === "completed"
-                      ? "Conclua uma tarefa para dar o primeiro passo."
-                      : "Adicione uma tarefa e dê o próximo passo."}
+                      ? "Complete a task to take the first step."
+                      : "Add a task and take the next step."}
                 </p>
               </div>
             )}
             <footer className="list-footer">
               <span>
-                {visible.length} {visible.length === 1 ? "tarefa" : "tarefas"}{" "}
-                nesta visualização
+                {visible.length} {visible.length === 1 ? "task" : "tasks"} in
+                this view
               </span>
               <span>
-                <Check size={13} /> Salvo no seu espaço
+                <Check size={13} /> Saved to your workspace
               </span>
             </footer>
           </section>
           <footer className="page-footer">
-            <span>Feito para um dia com mais foco.</span>
+            <span>Made for a more focused day.</span>
             <Leaf size={15} />
           </footer>
         </main>
