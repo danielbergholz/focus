@@ -33,7 +33,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "~2.4.8",
-    "@tanstack/devtools-vite": "^0.8.5",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
