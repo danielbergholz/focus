@@ -14,7 +14,13 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import {
+  type FormEvent,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { Task } from "../db/schema";
 import { createTask, deleteTask, listTasks, updateTask } from "../server/tasks";
 
@@ -45,31 +51,14 @@ function TaskPage() {
   const tasks = Route.useLoaderData();
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
-  const [title, setTitle] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
-  const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [editing, setEditing] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [editDueDate, setEditDueDate] = useState("");
-  // Set after mount so server and client render the same markup.
-  const [today, setToday] = useState<string | null>(null);
-  useEffect(() => setToday(localToday()), []);
   const completed = tasks.filter((task) => task.completed).length;
   const pending = tasks.length - completed;
   const progress = tasks.length
     ? Math.round((completed / tasks.length) * 100)
     : 0;
-  const visible = tasks.filter(
-    (task) =>
-      (filter === "all" ||
-        (filter === "completed" ? task.completed : !task.completed)) &&
-      task.title
-        .toLocaleLowerCase("en-US")
-        .includes(search.toLocaleLowerCase("en-US")),
-  );
 
   async function mutate(action: () => Promise<unknown>, after?: () => void) {
     if (busy) return;
@@ -84,37 +73,6 @@ function TaskPage() {
     } finally {
       setBusy(false);
     }
-  }
-
-  function add(event: FormEvent) {
-    event.preventDefault();
-    const nextTitle = title.trim();
-    if (!nextTitle) return;
-    void mutate(
-      () =>
-        createTask({ data: { title: nextTitle, dueDate: dueDate || null } }),
-      () => {
-        setTitle("");
-        setDueDate("");
-        input.current?.focus();
-      },
-    );
-  }
-
-  function save(event: FormEvent, task: Task) {
-    event.preventDefault();
-    if (!editTitle.trim()) return;
-    void mutate(
-      () =>
-        updateTask({
-          data: {
-            id: task.id,
-            title: editTitle.trim(),
-            dueDate: editDueDate || null,
-          },
-        }),
-      () => setEditing(null),
-    );
   }
 
   return (
@@ -244,233 +202,19 @@ function TaskPage() {
                 New task <Plus size={16} />
               </button>
             </div>
-            <form className="add-form" onSubmit={add}>
-              <Plus size={19} aria-hidden="true" />
-              <label className="sr-only" htmlFor="new-task">
-                New task
-              </label>
-              <input
-                ref={input}
-                id="new-task"
-                placeholder="What would you like to do?"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                maxLength={200}
-                required
-                disabled={busy}
-              />
-              <label className="due-field">
-                <CalendarDays size={15} aria-hidden="true" />
-                <span className="sr-only">Due date (optional)</span>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(event) => setDueDate(event.target.value)}
-                  disabled={busy}
-                />
-              </label>
-              <button type="submit" disabled={busy || !title.trim()}>
-                Add task <ArrowUpRight size={16} />
-              </button>
-            </form>
+            <AddTaskForm inputRef={input} busy={busy} mutate={mutate} />
             {error && (
               <p className="error-message" role="alert">
                 {error}
               </p>
             )}
-            <div className="list-toolbar">
-              <nav className="filter-tabs" aria-label="View">
-                {(
-                  [
-                    ["all", "All"],
-                    ["pending", "Open"],
-                    ["completed", "Completed"],
-                  ] as const
-                ).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={filter === value}
-                    className={filter === value ? "selected" : ""}
-                    onClick={() => setFilter(value)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </nav>
-              <label className="search">
-                <Search size={15} />
-                <span className="sr-only">Search tasks</span>
-                <input
-                  placeholder="Search tasks"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
-              </label>
-            </div>
-            <div className="list-caption">
-              <span>TASK</span>
-              <span>
-                NEWEST FIRST <ArrowDown size={12} />
-              </span>
-            </div>
-            <ul className="task-list" aria-label="Task list" aria-busy={busy}>
-              {visible.map((task) => {
-                const overdue =
-                  !!task.dueDate &&
-                  !task.completed &&
-                  today !== null &&
-                  task.dueDate < today;
-                return (
-                  <li
-                    key={task.id}
-                    className={`task-row ${task.completed ? "done" : ""} ${overdue ? "overdue" : ""}`}
-                  >
-                    <input
-                      className="task-checkbox"
-                      type="checkbox"
-                      checked={task.completed}
-                      disabled={busy}
-                      aria-label={`Complete: ${task.title}`}
-                      onChange={(event) => {
-                        void mutate(() =>
-                          updateTask({
-                            data: {
-                              id: task.id,
-                              completed: event.target.checked,
-                            },
-                          }),
-                        );
-                      }}
-                    />
-                    {editing === task.id ? (
-                      <form
-                        className="edit-form"
-                        onSubmit={(event) => save(event, task)}
-                      >
-                        <input
-                          aria-label="Edit title"
-                          value={editTitle}
-                          onChange={(event) => setEditTitle(event.target.value)}
-                          required
-                          maxLength={200}
-                          disabled={busy}
-                        />
-                        <input
-                          type="date"
-                          aria-label="Edit due date"
-                          value={editDueDate}
-                          onChange={(event) =>
-                            setEditDueDate(event.target.value)
-                          }
-                          disabled={busy}
-                        />
-                        <button
-                          type="submit"
-                          aria-label="Save title"
-                          disabled={busy || !editTitle.trim()}
-                        >
-                          <Check size={17} />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Cancel editing"
-                          onClick={() => setEditing(null)}
-                        >
-                          <X size={17} />
-                        </button>
-                      </form>
-                    ) : (
-                      <>
-                        <span className="task-title">
-                          {task.title}
-                          {task.dueDate && (
-                            <time
-                              className="due-badge"
-                              dateTime={task.dueDate}
-                              title={overdue ? "Overdue" : "Due date"}
-                            >
-                              <CalendarDays size={11} aria-hidden="true" />
-                              {overdue && (
-                                <span className="sr-only">Overdue: </span>
-                              )}
-                              {formatDueDate(task.dueDate)}
-                            </time>
-                          )}
-                        </span>
-                        <span
-                          className={`status-badge ${task.completed ? "finished" : ""}`}
-                        >
-                          {task.completed ? "Completed" : "Open"}
-                        </span>
-                        <div className="row-actions">
-                          <button
-                            type="button"
-                            aria-label={`Edit: ${task.title}`}
-                            disabled={busy}
-                            onClick={() => {
-                              setEditing(task.id);
-                              setEditTitle(task.title);
-                              setEditDueDate(task.dueDate ?? "");
-                            }}
-                          >
-                            <Pencil size={15} />
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`Delete: ${task.title}`}
-                            disabled={busy}
-                            onClick={() => {
-                              void mutate(() =>
-                                deleteTask({ data: { id: task.id } }),
-                              );
-                            }}
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-            {visible.length === 0 && (
-              <div className="empty-state">
-                <span className="empty-icon">
-                  {filter === "completed" ? (
-                    <CheckCheck size={27} />
-                  ) : (
-                    <Leaf size={27} />
-                  )}
-                </span>
-                <h3>
-                  {search
-                    ? "No tasks found."
-                    : filter === "completed"
-                      ? "Your wins will show up here."
-                      : filter === "pending" && tasks.length
-                        ? "You are all caught up."
-                        : "A fresh start."}
-                </h3>
-                <p>
-                  {search
-                    ? "Try a different search term."
-                    : filter === "completed"
-                      ? "Complete a task to take the first step."
-                      : "Add a task and take the next step."}
-                </p>
-              </div>
-            )}
-            <footer className="list-footer">
-              <span>
-                {visible.length} {visible.length === 1 ? "task" : "tasks"} in
-                this view
-              </span>
-              <span>
-                <Check size={13} /> Saved to your workspace
-              </span>
-            </footer>
+            <TaskList
+              tasks={tasks}
+              filter={filter}
+              onFilterChange={setFilter}
+              busy={busy}
+              mutate={mutate}
+            />
           </section>
           <footer className="page-footer">
             <span>Made for a more focused day.</span>
@@ -479,5 +223,312 @@ function TaskPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+// Owns the new-task draft so typing only re-renders the form, not the whole page.
+function AddTaskForm({
+  inputRef,
+  busy,
+  mutate,
+}: {
+  inputRef: RefObject<HTMLInputElement | null>;
+  busy: boolean;
+  mutate: Mutate;
+}) {
+  const [title, setTitle] = useState("");
+  const [dueDate, setDueDate] = useState("");
+
+  function add(event: FormEvent) {
+    event.preventDefault();
+    const nextTitle = title.trim();
+    if (!nextTitle) return;
+    void mutate(
+      () =>
+        createTask({ data: { title: nextTitle, dueDate: dueDate || null } }),
+      () => {
+        setTitle("");
+        setDueDate("");
+        inputRef.current?.focus();
+      },
+    );
+  }
+
+  return (
+    <form className="add-form" onSubmit={add}>
+      <Plus size={19} aria-hidden="true" />
+      <label className="sr-only" htmlFor="new-task">
+        New task
+      </label>
+      <input
+        ref={inputRef}
+        id="new-task"
+        placeholder="What would you like to do?"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+        maxLength={200}
+        required
+        disabled={busy}
+      />
+      <label className="due-field">
+        <CalendarDays size={15} aria-hidden="true" />
+        <span className="sr-only">Due date (optional)</span>
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(event) => setDueDate(event.target.value)}
+          disabled={busy}
+        />
+      </label>
+      <button type="submit" disabled={busy || !title.trim()}>
+        Add task <ArrowUpRight size={16} />
+      </button>
+    </form>
+  );
+}
+
+type Mutate = (
+  action: () => Promise<unknown>,
+  after?: () => void,
+) => Promise<void>;
+
+// Owns the search text so typing only re-renders the list, not the whole page.
+function TaskList({
+  tasks,
+  filter,
+  onFilterChange,
+  busy,
+  mutate,
+}: {
+  tasks: Task[];
+  filter: Filter;
+  onFilterChange: (filter: Filter) => void;
+  busy: boolean;
+  mutate: Mutate;
+}) {
+  const [search, setSearch] = useState("");
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDueDate, setEditDueDate] = useState("");
+  // Set after mount so server and client render the same markup.
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => setToday(localToday()), []);
+  const visible = tasks.filter(
+    (task) =>
+      (filter === "all" ||
+        (filter === "completed" ? task.completed : !task.completed)) &&
+      task.title
+        .toLocaleLowerCase("en-US")
+        .includes(search.toLocaleLowerCase("en-US")),
+  );
+
+  function save(event: FormEvent, task: Task) {
+    event.preventDefault();
+    if (!editTitle.trim()) return;
+    void mutate(
+      () =>
+        updateTask({
+          data: {
+            id: task.id,
+            title: editTitle.trim(),
+            dueDate: editDueDate || null,
+          },
+        }),
+      () => setEditing(null),
+    );
+  }
+
+  return (
+    <>
+      <div className="list-toolbar">
+        <nav className="filter-tabs" aria-label="View">
+          {(
+            [
+              ["all", "All"],
+              ["pending", "Open"],
+              ["completed", "Completed"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={filter === value}
+              className={filter === value ? "selected" : ""}
+              onClick={() => onFilterChange(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+        <label className="search">
+          <Search size={15} />
+          <span className="sr-only">Search tasks</span>
+          <input
+            placeholder="Search tasks"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </label>
+      </div>
+      <div className="list-caption">
+        <span>TASK</span>
+        <span>
+          NEWEST FIRST <ArrowDown size={12} />
+        </span>
+      </div>
+      <ul className="task-list" aria-label="Task list" aria-busy={busy}>
+        {visible.map((task) => {
+          const overdue =
+            !!task.dueDate &&
+            !task.completed &&
+            today !== null &&
+            task.dueDate < today;
+          return (
+            <li
+              key={task.id}
+              className={`task-row ${task.completed ? "done" : ""} ${overdue ? "overdue" : ""}`}
+            >
+              <input
+                className="task-checkbox"
+                type="checkbox"
+                checked={task.completed}
+                disabled={busy}
+                aria-label={`Complete: ${task.title}`}
+                onChange={(event) => {
+                  void mutate(() =>
+                    updateTask({
+                      data: {
+                        id: task.id,
+                        completed: event.target.checked,
+                      },
+                    }),
+                  );
+                }}
+              />
+              {editing === task.id ? (
+                <form
+                  className="edit-form"
+                  onSubmit={(event) => save(event, task)}
+                >
+                  <input
+                    aria-label="Edit title"
+                    value={editTitle}
+                    onChange={(event) => setEditTitle(event.target.value)}
+                    required
+                    maxLength={200}
+                    disabled={busy}
+                  />
+                  <input
+                    type="date"
+                    aria-label="Edit due date"
+                    value={editDueDate}
+                    onChange={(event) => setEditDueDate(event.target.value)}
+                    disabled={busy}
+                  />
+                  <button
+                    type="submit"
+                    aria-label="Save title"
+                    disabled={busy || !editTitle.trim()}
+                  >
+                    <Check size={17} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Cancel editing"
+                    onClick={() => setEditing(null)}
+                  >
+                    <X size={17} />
+                  </button>
+                </form>
+              ) : (
+                <>
+                  <span className="task-title">
+                    {task.title}
+                    {task.dueDate && (
+                      <time
+                        className="due-badge"
+                        dateTime={task.dueDate}
+                        title={overdue ? "Overdue" : "Due date"}
+                      >
+                        <CalendarDays size={11} aria-hidden="true" />
+                        {overdue && <span className="sr-only">Overdue: </span>}
+                        {formatDueDate(task.dueDate)}
+                      </time>
+                    )}
+                  </span>
+                  <span
+                    className={`status-badge ${task.completed ? "finished" : ""}`}
+                  >
+                    {task.completed ? "Completed" : "Open"}
+                  </span>
+                  <div className="row-actions">
+                    <button
+                      type="button"
+                      aria-label={`Edit: ${task.title}`}
+                      disabled={busy}
+                      onClick={() => {
+                        setEditing(task.id);
+                        setEditTitle(task.title);
+                        setEditDueDate(task.dueDate ?? "");
+                      }}
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Delete: ${task.title}`}
+                      disabled={busy}
+                      onClick={() => {
+                        void mutate(() =>
+                          deleteTask({ data: { id: task.id } }),
+                        );
+                      }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {visible.length === 0 && (
+        <div className="empty-state">
+          <span className="empty-icon">
+            {filter === "completed" ? (
+              <CheckCheck size={27} />
+            ) : (
+              <Leaf size={27} />
+            )}
+          </span>
+          <h3>
+            {search
+              ? "No tasks found."
+              : filter === "completed"
+                ? "Your wins will show up here."
+                : filter === "pending" && tasks.length
+                  ? "You are all caught up."
+                  : "A fresh start."}
+          </h3>
+          <p>
+            {search
+              ? "Try a different search term."
+              : filter === "completed"
+                ? "Complete a task to take the first step."
+                : "Add a task and take the next step."}
+          </p>
+        </div>
+      )}
+      <footer className="list-footer">
+        <span>
+          {visible.length} {visible.length === 1 ? "task" : "tasks"} in this
+          view
+        </span>
+        <span>
+          <Check size={13} /> Saved to your workspace
+        </span>
+      </footer>
+    </>
   );
 }
