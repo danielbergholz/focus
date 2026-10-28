@@ -494,6 +494,44 @@ input::placeholder {
   text-decoration: line-through;
   color: #979e8d;
 }
+.due-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  font-size: 10px;
+  color: #90937f;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.done .due-badge {
+  text-decoration: none;
+}
+.overdue {
+  background: #fdf3f1;
+}
+.overdue .due-badge {
+  color: #b4443a;
+  font-weight: 600;
+}
+.due-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #90937f;
+}
+.due-field input,
+.edit-form input[type="date"] {
+  font: inherit;
+  font-size: 11px;
+  color: #5d6552;
+  border: 1px solid #e3e7da;
+  border-radius: 6px;
+  padding: 5px 7px;
+  background: #fff;
+  width: auto;
+  flex: none;
+}
 .status-badge {
   font-size: 9px;
   color: #90937f;

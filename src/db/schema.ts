@@ -10,6 +10,7 @@ export const tasks = sqliteTable(
       .notNull()
       .default(false),
     createdAt: integer("created_at").notNull(),
+    dueDate: text("due_date"),
   },
   (table) => [
     check(

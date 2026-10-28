@@ -18,7 +18,12 @@ export function taskRepository(db: BetterSQLite3Database<typeof schema>) {
       const data = createTaskInput.parse(input);
       return db
         .insert(tasks)
-        .values({ id: randomUUID(), title: data.title, createdAt: Date.now() })
+        .values({
+          id: randomUUID(),
+          title: data.title,
+          dueDate: data.dueDate ?? null,
+          createdAt: Date.now(),
+        })
         .returning()
         .get();
     },

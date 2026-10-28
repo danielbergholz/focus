@@ -2,6 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
   ArrowDown,
   ArrowUpRight,
+  CalendarDays,
   Check,
   CheckCheck,
   Circle,
@@ -13,7 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { Task } from "../db/schema";
 import { createTask, deleteTask, listTasks, updateTask } from "../server/tasks";
 
@@ -21,7 +22,24 @@ export const Route = createFileRoute("/")({
   loader: () => listTasks(),
   component: TaskPage,
 });
+
 type Filter = "all" | "pending" | "completed";
+
+function localToday() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function formatDueDate(dueDate: string) {
+  const [year, month, day] = dueDate.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 function TaskPage() {
   const tasks = Route.useLoaderData();
@@ -34,6 +52,11 @@ function TaskPage() {
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [editDueDate, setEditDueDate] = useState("");
+  // Set after mount so server and client render the same markup.
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => setToday(localToday()), []);
   const completed = tasks.filter((task) => task.completed).length;
   const pending = tasks.length - completed;
   const progress = tasks.length
@@ -68,9 +91,11 @@ function TaskPage() {
     const nextTitle = title.trim();
     if (!nextTitle) return;
     void mutate(
-      () => createTask({ data: { title: nextTitle } }),
+      () =>
+        createTask({ data: { title: nextTitle, dueDate: dueDate || null } }),
       () => {
         setTitle("");
+        setDueDate("");
         input.current?.focus();
       },
     );
@@ -80,7 +105,14 @@ function TaskPage() {
     event.preventDefault();
     if (!editTitle.trim()) return;
     void mutate(
-      () => updateTask({ data: { id: task.id, title: editTitle.trim() } }),
+      () =>
+        updateTask({
+          data: {
+            id: task.id,
+            title: editTitle.trim(),
+            dueDate: editDueDate || null,
+          },
+        }),
       () => setEditing(null),
     );
   }
@@ -227,6 +259,16 @@ function TaskPage() {
                 required
                 disabled={busy}
               />
+              <label className="due-field">
+                <CalendarDays size={15} aria-hidden="true" />
+                <span className="sr-only">Due date (optional)</span>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(event) => setDueDate(event.target.value)}
+                  disabled={busy}
+                />
+              </label>
               <button type="submit" disabled={busy || !title.trim()}>
                 Add task <ArrowUpRight size={16} />
               </button>
@@ -273,93 +315,125 @@ function TaskPage() {
               </span>
             </div>
             <ul className="task-list" aria-label="Task list" aria-busy={busy}>
-              {visible.map((task) => (
-                <li
-                  key={task.id}
-                  className={`task-row ${task.completed ? "done" : ""}`}
-                >
-                  <input
-                    className="task-checkbox"
-                    type="checkbox"
-                    checked={task.completed}
-                    disabled={busy}
-                    aria-label={`Complete: ${task.title}`}
-                    onChange={(event) => {
-                      void mutate(() =>
-                        updateTask({
-                          data: {
-                            id: task.id,
-                            completed: event.target.checked,
-                          },
-                        }),
-                      );
-                    }}
-                  />
-                  {editing === task.id ? (
-                    <form
-                      className="edit-form"
-                      onSubmit={(event) => save(event, task)}
-                    >
-                      <input
-                        aria-label="Edit title"
-                        value={editTitle}
-                        onChange={(event) => setEditTitle(event.target.value)}
-                        required
-                        maxLength={200}
-                        disabled={busy}
-                      />
-                      <button
-                        type="submit"
-                        aria-label="Save title"
-                        disabled={busy || !editTitle.trim()}
+              {visible.map((task) => {
+                const overdue =
+                  !!task.dueDate &&
+                  !task.completed &&
+                  today !== null &&
+                  task.dueDate < today;
+                return (
+                  <li
+                    key={task.id}
+                    className={`task-row ${task.completed ? "done" : ""} ${overdue ? "overdue" : ""}`}
+                  >
+                    <input
+                      className="task-checkbox"
+                      type="checkbox"
+                      checked={task.completed}
+                      disabled={busy}
+                      aria-label={`Complete: ${task.title}`}
+                      onChange={(event) => {
+                        void mutate(() =>
+                          updateTask({
+                            data: {
+                              id: task.id,
+                              completed: event.target.checked,
+                            },
+                          }),
+                        );
+                      }}
+                    />
+                    {editing === task.id ? (
+                      <form
+                        className="edit-form"
+                        onSubmit={(event) => save(event, task)}
                       >
-                        <Check size={17} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Cancel editing"
-                        onClick={() => setEditing(null)}
-                      >
-                        <X size={17} />
-                      </button>
-                    </form>
-                  ) : (
-                    <>
-                      <span className="task-title">{task.title}</span>
-                      <span
-                        className={`status-badge ${task.completed ? "finished" : ""}`}
-                      >
-                        {task.completed ? "Completed" : "Open"}
-                      </span>
-                      <div className="row-actions">
-                        <button
-                          type="button"
-                          aria-label={`Edit: ${task.title}`}
+                        <input
+                          aria-label="Edit title"
+                          value={editTitle}
+                          onChange={(event) => setEditTitle(event.target.value)}
+                          required
+                          maxLength={200}
                           disabled={busy}
-                          onClick={() => {
-                            setEditing(task.id);
-                            setEditTitle(task.title);
-                          }}
+                        />
+                        <input
+                          type="date"
+                          aria-label="Edit due date"
+                          value={editDueDate}
+                          onChange={(event) =>
+                            setEditDueDate(event.target.value)
+                          }
+                          disabled={busy}
+                        />
+                        <button
+                          type="submit"
+                          aria-label="Save title"
+                          disabled={busy || !editTitle.trim()}
                         >
-                          <Pencil size={15} />
+                          <Check size={17} />
                         </button>
                         <button
                           type="button"
-                          aria-label={`Delete: ${task.title}`}
-                          disabled={busy}
-                          onClick={() => {
-                            void mutate(() =>
-                              deleteTask({ data: { id: task.id } }),
-                            );
-                          }}
+                          aria-label="Cancel editing"
+                          onClick={() => setEditing(null)}
                         >
-                          <Trash2 size={15} />
+                          <X size={17} />
                         </button>
-                      </div>
-                    </>
-                  )}
-                </li>
-              ))}
+                      </form>
+                    ) : (
+                      <>
+                        <span className="task-title">
+                          {task.title}
+                          {task.dueDate && (
+                            <time
+                              className="due-badge"
+                              dateTime={task.dueDate}
+                              title={overdue ? "Overdue" : "Due date"}
+                            >
+                              <CalendarDays size={11} aria-hidden="true" />
+                              {overdue && (
+                                <span className="sr-only">Overdue: </span>
+                              )}
+                              {formatDueDate(task.dueDate)}
+                            </time>
+                          )}
+                        </span>
+                        <span
+                          className={`status-badge ${task.completed ? "finished" : ""}`}
+                        >
+                          {task.completed ? "Completed" : "Open"}
+                        </span>
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            aria-label={`Edit: ${task.title}`}
+                            disabled={busy}
+                            onClick={() => {
+                              setEditing(task.id);
+                              setEditTitle(task.title);
+                              setEditDueDate(task.dueDate ?? "");
+                            }}
+                          >
+                            <Pencil size={15} />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Delete: ${task.title}`}
+                            disabled={busy}
+                            onClick={() => {
+                              void mutate(() =>
+                                deleteTask({ data: { id: task.id } }),
+                              );
+                            }}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
             {visible.length === 0 && (
               <div className="empty-state">
